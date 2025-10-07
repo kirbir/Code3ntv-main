@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "text": "labba uti",
+    "completed": true
+  },
+  {
+    "id": 2,
+    "text": "labba ut",
+    "completed": true
+  },
+  {
+    "id": 3,
+    "text": "kuka a sig",
+    "completed": true
+  },
+  {
+    "id": 4,
+    "text": "fara í bað",
+    "completed": false
+  },
+  {
+    "id": 5,
+    "text": "Jiddu þau",
+    "completed": false
+  },
+  {
+    "id": 6,
+    "text": "Buy beer",
+    "completed": false
+  },
+  {
+    "id": 7,
+    "text": "Buy milllk",
+    "completed": false
+  },
+  {
+    "id": "b7f23304-b2b3-4c00-ae4c-e29932f5ab27",
+    "text": "Buy milllk",
+    "completed": false
+  },
+  {
+    "id": "28c1a58c-a3bf-40be-b3e4-90aa9bc0d06a",
+    "text": "Buy milllk",
+    "completed": false
+  },
+  {
+    "id": "adf7e96d-8465-4dc3-ae3c-35799bd697c2",
+    "text": "Buy milllk22222",
+    "completed": "true"
+  }
+]
