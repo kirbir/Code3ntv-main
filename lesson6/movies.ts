@@ -18,6 +18,7 @@ function createId() {
 
 /// LOAD MOVIES FROM FILE AND RETURN AS AN ARRAY
 export async function loadMoviesAsync(): Promise<Movies[]> {
+  console.log("Loading movies from file");
   try {
     const fileContent = await readFile(filePath, "utf-8");
 
@@ -39,17 +40,23 @@ export async function loadMoviesAsync(): Promise<Movies[]> {
 }
 
 export async function loadMoviesAsyncPaginated(page: number, limit: number): Promise<Movies[]> {
+  try {
     const movies = await loadMoviesAsync();
     const start = (page - 1) * limit;
     const end = start + limit;
     return movies.slice(start, end);
+    
+  } catch (error) {
+    console.log("Error loading movies paginated: ", error);
+    return [];
+  }
 }
 
 /// SAVE MOVIES TO THE FILE 
-async function saveMovies(movies: Movies[]) {
+async function saveMoviesAsync(movies: Movies[]) {
     try {
         const jsonString = JSON.stringify(movies, null, 2);
-        writeFile(filePath, jsonString, "utf-8");
+        await writeFile(filePath, jsonString, "utf-8");
     } catch (error) {
         console.log(chalk.red("Error saving Movies: ", error))
     }
@@ -68,7 +75,7 @@ export async function addMovie(title: string, year:number): Promise<Movies> {
     }
 
     movies.push(newMovie);
-    saveMovies(movies);
+    await saveMoviesAsync(movies);
     console.log(chalk.green("New movie added!"));
     return newMovie;
 }
@@ -101,7 +108,7 @@ export async function markAsWatched(id: string, watched: boolean = true): Promis
     }
 
     movie.watched = watched;
-    saveMovies(movies);
+    await saveMoviesAsync(movies);
     console.log(chalk.green(`Marked movie #${id} as watched!`));
     return true;
 }
@@ -120,6 +127,6 @@ export async function clearMovie(id: string) {
   const newMovie = movies.filter((movie) => {
     return movie.id !== id;
   });
-  saveMovies(newMovie);
+  await saveMoviesAsync(newMovie);
 }
 
