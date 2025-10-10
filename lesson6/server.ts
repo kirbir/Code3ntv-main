@@ -1,8 +1,8 @@
 import express from "express";
-import { errorHandler } from "./errorHandler.js";
+import { errorHandler } from "./errorHandler";
 import { NextFunction, Request, Response } from "express";
 import {z} from "zod";
-import { loadMoviesAsync, addMovie, listMovies, markAsWatched , type Movies, clearMovie, loadMoviesAsyncPaginated} from "./movies.ts";
+import { loadMoviesAsync, addMovie, listMovies, markAsWatched , type Movies, clearMovie, loadMoviesAsyncPaginated} from "./movies";
 const app = express();
 const port = 8000;
 
@@ -12,6 +12,10 @@ const uuidSchema = z.string().regex(
   "Invalid UUID format"
 );
 app.use(express.json());
+
+interface IParam {
+  id: string
+}
 
 
 
@@ -32,46 +36,15 @@ app.use((request, response, next) => {
   
 });
 
+app.use((error: any, request:Request, response:Response, next:NextFunction) => {
+  console.log(error);
+  response.status(500).json({ message: "Oops! Something went wrong." });
+});
+
+app.get("/", (req, res) => {
+  throw new Error("Something broke!");
+});
 //// Middleware
-
-
-
-/// GET ALL MOVIES FROM FILE
-app.get("/movies", async (request, response) => {
-  const movies = await loadMoviesAsync();
-  response.status(200).json(movies);
-
-});
-
-
-/// GET MOVIE BY ID
-app.get("/movies/:id", async (request, response, next:NextFunction)=>{
-  response.status(500).json({error: "Error!"});
-  console.log("GET MOVIE BY ID is hit");
-  const {id} = request.params as {id:string};
-  const result = uuidSchema.safeParse({id});
-
-  if (!result.success) {
-    console.log(result.success);
-  
-    return;
-  }
- 
-  console.log("About to call loadMoviesAsync");
-  const movies = await loadMoviesAsync();
-  console.log("loadMoviesAsync completed");
-  
-  const movie = movies.find((movie)=> {
-      return movie.id === id;
-  });
-
-  if (!movie) {
-      response.status(404).json({error: "Movie not found or ID is wrong"});
-      return;
-  }
-
-  response.status(200).json(movie);
-});
 
 
 /// GET ALL MOVIES FROM FILE PAGINATED
@@ -99,6 +72,42 @@ app.get("/movies/paginated", async (request, response) => {
     console.log("Error:", error);
     response.status(500).json({error: "Error loading movies paginated"});
   }
+});
+
+/// GET MOVIE BY ID
+app.get("/movies/:id", async (req: Request<IParam>, response, next:NextFunction)=>{
+
+  console.log("GET MOVIE BY ID is hit");
+  const {id} = req.params;
+  const result = uuidSchema.safeParse(id);
+  console.log(result)
+
+  if (!result.success) {
+    response.status(400).json({error: "Error: Invalid format of UUID!"});
+    return;
+  }
+ 
+  console.log("About to call loadMoviesAsync");
+  const movies = await loadMoviesAsync();
+  console.log("loadMoviesAsync completed");
+  
+  const movie = movies.find((movie)=> {
+      return movie.id === id;
+  });
+
+  if (!movie) {
+      response.status(404).json({error: "Movie not found or ID is wrong"});
+      return;
+  }
+
+  response.status(200).json(movie);
+});
+
+/// GET ALL MOVIES FROM FILE
+app.get("/movies", async (request, response) => {
+  const movies = await loadMoviesAsync();
+  response.status(200).json(movies);
+
 });
 
 /// ADD A NEW MOVIE TO THE FILE
@@ -146,7 +155,7 @@ app.delete("/movies/:id", async (request, response) => {
     response.status(204).send("");
   });
 
-  app.use(errorHandler);
+
 
   app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
