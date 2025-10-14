@@ -1,8 +1,8 @@
 import express from "express";
 import { errorHandler } from "./errorHandler";
 import { NextFunction, Request, Response } from "express";
-import {z} from "zod";
-import { loadMoviesAsync, addMovie, listMovies, markAsWatched , type Movies, clearMovie, loadMoviesAsyncPaginated} from "./movies";
+import { z } from "zod";
+import { loadMoviesAsync, addMovie, listMovies, markAsWatched, type Movies, clearMovie, loadMoviesAsyncPaginated } from "./movies";
 const app = express();
 const port = 8000;
 
@@ -17,26 +17,23 @@ interface IParam {
   id: string
 }
 
-
-
 //// MIDDLEWARE
-
 app.use((request, response, next) => {
   const timestamp = new Date().toISOString();
   console.log(`${timestamp} ${request.method} ${request.originalUrl}`);
   if (request.method === "POST" || request.method === "PATCH") {
-    
+
     console.log(request.body);
     next();
   } else {
-    
+
     next();
 
   }
-  
+
 });
 
-app.use((error: any, request:Request, response:Response, next:NextFunction) => {
+app.use((error: any, request: Request, response: Response, next: NextFunction) => {
   console.log(error);
   response.status(500).json({ message: "Oops! Something went wrong." });
 });
@@ -51,53 +48,53 @@ app.get("/", (req, res) => {
 app.get("/movies/paginated", async (request, response) => {
   console.log("Paginated endpoint hit");
   try {
-    const {page, limit} = request.query;
-    console.log("Query params:", {page, limit});
-    
+    const { page, limit } = request.query;
+    console.log("Query params:", { page, limit });
+
     const pageNum = parseInt(page as string) || 1;
     const limitNum = parseInt(limit as string) || 10;
-    
-    console.log("Parsed params:", {pageNum, limitNum});
-    
+
+    console.log("Parsed params:", { pageNum, limitNum });
+
     const movies = await loadMoviesAsync();
     console.log("Total movies:", movies.length);
-    
+
     const start = (pageNum - 1) * limitNum;
     const end = start + limitNum;
     const result = movies.slice(start, end);
-    
+
     console.log("Result:", result);
     response.status(200).json(result);
   } catch (error) {
     console.log("Error:", error);
-    response.status(500).json({error: "Error loading movies paginated"});
+    response.status(500).json({ error: "Error loading movies paginated" });
   }
 });
 
 /// GET MOVIE BY ID
-app.get("/movies/:id", async (req: Request<IParam>, response, next:NextFunction)=>{
+app.get("/movies/:id", async (req: Request<IParam>, response, next: NextFunction) => {
 
   console.log("GET MOVIE BY ID is hit");
-  const {id} = req.params;
+  const { id } = req.params;
   const result = uuidSchema.safeParse(id);
   console.log(result)
 
   if (!result.success) {
-    response.status(400).json({error: "Error: Invalid format of UUID!"});
+    response.status(400).json({ error: "Error: Invalid format of UUID!" });
     return;
   }
- 
+
   console.log("About to call loadMoviesAsync");
   const movies = await loadMoviesAsync();
   console.log("loadMoviesAsync completed");
-  
-  const movie = movies.find((movie)=> {
-      return movie.id === id;
+
+  const movie = movies.find((movie) => {
+    return movie.id === id;
   });
 
   if (!movie) {
-      response.status(404).json({error: "Movie not found or ID is wrong"});
-      return;
+    response.status(404).json({ error: "Movie not found or ID is wrong" });
+    return;
   }
 
   response.status(200).json(movie);
@@ -112,51 +109,51 @@ app.get("/movies", async (request, response) => {
 
 /// ADD A NEW MOVIE TO THE FILE
 app.post("/movies", async (request, response) => {
-    const {title, year} = request.body as {title:string, year:number};
+  const { title, year } = request.body as { title: string, year: number };
 
-    const newMovie = await addMovie(title, year);
-    response.status(201).json(newMovie);
+  const newMovie = await addMovie(title, year);
+  response.status(201).json(newMovie);
 })
 
 /// MARK A MOVIE AS WATCHED BY ID
 app.patch("/movies/:id", async (request, response) => {
-    const {id} = request.body as {id:string};
-    const {watched} = request.body as {watched:boolean};
+  const { id } = request.body as { id: string };
+  const { watched } = request.body as { watched: boolean };
 
-    const movies = await loadMoviesAsync();
-    const foundMovie = movies.find((movie)=> {
-        return movie.id === id;
-    });
+  const movies = await loadMoviesAsync();
+  const foundMovie = movies.find((movie) => {
+    return movie.id === id;
+  });
 
-    if (!foundMovie) {
-        response.status(404).send(null);
-        return;
-    }
+  if (!foundMovie) {
+    response.status(404).send(null);
+    return;
+  }
 
-    markAsWatched(foundMovie.id, watched);
-    response.status(204).send('');
+  markAsWatched(foundMovie.id, watched);
+  response.status(204).send('');
 })
 
 
 //// DELETE MOVIE BY ID
 app.delete("/movies/:id", async (request, response) => {
-    const { id } = request.params as { id: string };
-    const movies = await loadMoviesAsync();
-    const movie = movies.find((movie) => {
-      return movie.id === id;
-    });
-  
-    if (!movie) {
-      response.status(404).send(null);
-      return;
-    }
-  
-    clearMovie(movie.id);
-    response.status(204).send("");
+  const { id } = request.params as { id: string };
+  const movies = await loadMoviesAsync();
+  const movie = movies.find((movie) => {
+    return movie.id === id;
   });
 
+  if (!movie) {
+    response.status(404).send(null);
+    return;
+  }
+
+  clearMovie(movie.id);
+  response.status(204).send("");
+});
 
 
-  app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
-  });
+
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
+});
