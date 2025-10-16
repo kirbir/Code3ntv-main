@@ -1,0 +1,62 @@
+[
+  {
+    "id": "123e4567-e89b-12d3-a456-426614174000",
+    "title": "The Matrix",
+    "year": 1999,
+    "watched": false
+  },
+  {
+    "id": "123e4567-e89b-12d3-a456-426614174001",
+    "title": "Inception",
+    "year": 2010,
+    "watched": true
+  },
+  {
+    "id": "123e4567-e89b-12d3-a456-426614174002",
+    "title": "Pulp Fiction",
+    "year": 1994,
+    "watched": false
+  },
+  {
+    "id": "123e4567-e89b-12d3-a456-426614174003",
+    "title": "The Dark Knight",
+    "year": 2008,
+    "watched": true
+  },
+  {
+    "id": "123e4567-e89b-12d3-a456-426614174004",
+    "title": "Fight Club",
+    "year": 1999,
+    "watched": false
+  },
+  {
+    "id": "123e4567-e89b-12d3-a456-426614174005",
+    "title": "Goodfellas",
+    "year": 1990,
+    "watched": true
+  },
+  {
+    "id": "123e4567-e89b-12d3-a456-426614174006",
+    "title": "The Shawshank Redemption",
+    "year": 1994,
+    "watched": false
+  },
+  {
+    "id": "123e4567-e89b-12d3-a456-426614174007",
+    "title": "Forrest Gump",
+    "year": 1994,
+    "watched": true
+  },
+  {
+    "id": "123e4567-e89b-12d3-a456-426614174008",
+    "title": "The Godfather",
+    "year": 1972,
+    "watched": false
+  },
+  {
+    "id": "123e4567-e89b-12d3-a456-426614174009",
+    "title": "Interstellar",
+    "year": 2014,
+    "watched": true
+  }
+]

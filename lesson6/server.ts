@@ -1,8 +1,8 @@
 import express from "express";
-import { errorHandler } from "./errorHandler";
 import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
 import { loadMoviesAsync, addMovie, listMovies, markAsWatched, type Movies, clearMovie, loadMoviesAsyncPaginated } from "./movies";
+import { errorHandler, validate, validateParams, validateQuery } from "./middleware";
 const app = express();
 const port = 8000;
 
@@ -11,11 +11,25 @@ const uuidSchema = z.string().regex(
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
   "Invalid UUID format"
 );
+
 app.use(express.json());
 
 interface IParam {
   id: string
 }
+
+const createMovieSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  year: z.number().int().min(1900).max(new Date().getFullYear() + 1)
+});
+
+const paramsSchema = z.object({
+  id: uuidSchema
+});
+
+const updateMovieSchema = z.object({
+  watched: z.boolean()
+});
 
 //// MIDDLEWARE
 app.use((request, response, next) => {
@@ -33,10 +47,8 @@ app.use((request, response, next) => {
 
 });
 
-app.use((error: any, request: Request, response: Response, next: NextFunction) => {
-  console.log(error);
-  response.status(500).json({ message: "Oops! Something went wrong." });
-});
+// Replace lines 36-39 with:
+app.use(errorHandler);
 
 app.get("/", (req, res) => {
   throw new Error("Something broke!");
@@ -72,7 +84,7 @@ app.get("/movies/paginated", async (request, response) => {
 });
 
 /// GET MOVIE BY ID
-app.get("/movies/:id", async (req: Request<IParam>, response, next: NextFunction) => {
+app.get("/movies/:id", validateParams(paramsSchema), async (req: Request, response, next: NextFunction) => {
 
   console.log("GET MOVIE BY ID is hit");
   const { id } = req.params;
@@ -108,18 +120,17 @@ app.get("/movies", async (request, response) => {
 });
 
 /// ADD A NEW MOVIE TO THE FILE
-app.post("/movies", async (request, response) => {
+app.post("/movies", validate(createMovieSchema), async (request, response) => {
   const { title, year } = request.body as { title: string, year: number };
-
   const newMovie = await addMovie(title, year);
   response.status(201).json(newMovie);
-})
+});
 
 /// MARK A MOVIE AS WATCHED BY ID
-app.patch("/movies/:id", async (request, response) => {
-  const { id } = request.body as { id: string };
+app.patch("/movies/:id", validateParams(paramsSchema), validate(updateMovieSchema), async (request, response) => {
+  const { id } = request.params as { id: string };
   const { watched } = request.body as { watched: boolean };
-
+  
   const movies = await loadMoviesAsync();
   const foundMovie = movies.find((movie) => {
     return movie.id === id;
@@ -132,7 +143,7 @@ app.patch("/movies/:id", async (request, response) => {
 
   markAsWatched(foundMovie.id, watched);
   response.status(204).send('');
-})
+});
 
 
 //// DELETE MOVIE BY ID
