@@ -2,9 +2,17 @@ import fs, { } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import type { EphemeralKeyInfo } from "node:tls";
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const fileName = "../data/articles.json";
-export type Articles = {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const articlesFilePath = path.join(__dirname, '../data/articles.json');
+
+
+
+
+export type ArticlesResponse = {
     id: string;
     title: string;
     content: string;
@@ -15,43 +23,78 @@ function createId() {
     return randomUUID();
 }
 
-export async function loadArticles(): Promise<Articles[]> {
-    try {
-        const result = await readFile(fileName, 'utf-8');
 
-        if (result.trim() === "") {
-            console.log("Warning: File is empty, maybe add some articles?")
-            return [];
+export async function loadArticlesPaginatedAsync(
+    filePath: string,
+    page?: number | undefined,
+    limit?: number | undefined
+): Promise<ArticlesResponse[]> {
+    try {
+        const data = await readFile(articlesFilePath, 'utf8');
+        const response = JSON.parse(data);
+
+        if (!Array.isArray(response)) {
+            throw new Error('Expected JSON array');
         }
 
-        const allArticlesParsed = JSON.parse(result);
-        return allArticlesParsed;
+        // If page or limit are undefined, return all tasks
+        if (page === undefined || limit === undefined) {
+            return response;
+        }
+
+        const startIndex = (page - 1) * limit;
+        const endIndex = page * limit;
+
+        return response.slice(startIndex, endIndex);
     } catch (error) {
-        console.log("Error loading articles: ", error);
-        return [];
+        if (error instanceof SyntaxError) {
+            throw new Error('Invalid JSON format in articles file');
+        }
+        if (error instanceof Error) {
+            throw new Error('loadArticlesPaginatedAsync: ' + error.message);
+        }
+        throw new Error('loadArticlesPaginatedAsync: Unknown error');
     }
 }
 
-export async function addArticle(title:string, content:string, authorId:string):Promise<Articles> {
-    
-    const articles = await loadArticles();
+export async function addArticle(title: string, content: string, authorId: string): Promise<ArticlesResponse> {
+
+    const articles = await loadArticlesPaginatedAsync(articlesFilePath);
     const newArticle = {
-        id:createId(),
-        title:title,
-        content:content,
-        authorId:authorId
+        id: createId(),
+        title: title,
+        content: content,
+        authorId: authorId
     }
 
     articles.push(newArticle);
-   await saveArticle(articles);
+    await saveArticle(articles);
     return newArticle;
 }
 
-export async function saveArticle(articles: Articles[]) {
+export async function saveArticle(articles: ArticlesResponse[]) {
     try {
         const jsonString = JSON.stringify(articles, null, 2);
-        await writeFile(fileName, 'utf-8')
+        await writeFile(articlesFilePath, jsonString ,'utf-8')
     } catch (error) {
         console.log("Error saving Articles: ", error);
     }
+}
+
+
+export async function deleteArticle(id:string):Promise<boolean> {
+    const articles = await loadArticlesPaginatedAsync(articlesFilePath);
+    const article = articles.find((article) => {return article.id == id});
+
+    if (!article) {
+        throw new Error('Article not found');
+    }
+
+    const newArticles = articles.filter((article) => {
+        return article.id !== id;
+    })
+
+    await saveArticle(newArticles);
+
+    return true;
 }

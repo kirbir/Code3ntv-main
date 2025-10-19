@@ -1,0 +1,56 @@
+[
+  {
+    "id": "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d",
+    "title": "Getting Started with TypeScript",
+    "content": "TypeScript has revolutionized the way we write JavaScript applications. In this comprehensive guide, we'll explore the fundamentals of TypeScript, including type annotations, interfaces, and generics. Whether you're a beginner or an experienced developer, understanding TypeScript will significantly improve your code quality and development experience.",
+    "authorId": "1"
+  },
+  {
+    "id": "b2c3d4e5-f6a7-4b5c-9d0e-1f2a3b4c5d6e",
+    "title": "Modern React Patterns in 2025",
+    "content": "React continues to evolve, and staying up-to-date with modern patterns is crucial for building efficient applications. This article covers hooks, custom hooks, context API usage, and the latest server components. We'll dive deep into practical examples that you can implement in your projects today.",
+    "authorId": "2"
+  },
+  {
+    "id": "c3d4e5f6-a7b8-4c5d-0e1f-2a3b4c5d6e7f",
+    "title": "Kubernetes Best Practices for Production",
+    "content": "Deploying applications to Kubernetes requires careful planning and adherence to best practices. This guide covers resource management, security considerations, monitoring strategies, and deployment patterns that will help you run reliable production workloads. Learn from real-world scenarios and avoid common pitfalls.",
+    "authorId": "3"
+  },
+  {
+    "id": "d4e5f6a7-b8c9-4d5e-1f2a-3b4c5d6e7f8a",
+    "title": "RESTful API Design Principles",
+    "content": "Designing a clean and maintainable REST API is an essential skill for backend developers. This article explores HTTP methods, status codes, resource naming conventions, and pagination strategies. We'll also discuss versioning approaches and error handling techniques that make your APIs more robust and developer-friendly.",
+    "authorId": "4"
+  },
+  {
+    "id": "e5f6a7b8-c9d0-4e5f-2a3b-4c5d6e7f8a9b",
+    "title": "CSS Grid vs Flexbox: When to Use Each",
+    "content": "Understanding the differences between CSS Grid and Flexbox is key to creating responsive layouts. While both are powerful tools, they excel in different scenarios. This article provides practical examples and decision-making guidelines to help you choose the right layout method for your specific use case.",
+    "authorId": "5"
+  },
+  {
+    "id": "f6a7b8c9-d0e1-4f5a-3b4c-5d6e7f8a9b0c",
+    "title": "Database Indexing Strategies",
+    "content": "Proper indexing can dramatically improve your database query performance. This comprehensive guide covers B-tree indexes, hash indexes, and composite indexes. Learn when to create indexes, how to analyze query execution plans, and understand the trade-offs between read and write performance in your database design.",
+    "authorId": "6"
+  },
+  {
+    "id": "a7b8c9d0-e1f2-4a5b-4c5d-6e7f8a9b0c1d",
+    "title": "Introduction to Test-Driven Development",
+    "content": "Test-Driven Development (TDD) is a software development approach that can lead to more reliable and maintainable code. This article introduces the red-green-refactor cycle, explains how to write effective unit tests, and demonstrates TDD with practical examples using popular testing frameworks like Jest and Vitest.",
+    "authorId": "7"
+  },
+  {
+    "id": "b8c9d0e1-f2a3-4b5c-5d6e-7f8a9b0c1d2e",
+    "title": "Understanding JavaScript Closures",
+    "content": "Closures are a fundamental concept in JavaScript that every developer should master. This article demystifies closures by explaining lexical scope, function context, and practical use cases. You'll learn how closures enable data privacy, create function factories, and power many JavaScript design patterns that you use daily.",
+    "authorId": "8"
+  },
+  {
+    "id": "c9d0e1f2-a3b4-4c5d-6e7f-8a9b0c1d2e3f",
+    "title": "Mobile-First Responsive Design",
+    "content": "In today's mobile-dominated world, starting with mobile-first design is more important than ever. This article covers responsive design principles, breakpoint strategies, and progressive enhancement techniques. Learn how to create interfaces that work seamlessly across all device sizes while maintaining optimal performance.",
+    "authorId": "9"
+  }
+]

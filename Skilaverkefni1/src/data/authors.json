@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "bio": "Software developer and writer with 10 years of experience in web development"
+  },
+  {
+    "id": 2,
+    "name": "Jane Smith",
+    "email": "jane@example.com",
+    "bio": "Tech blogger specializing in JavaScript frameworks and modern web technologies"
+  },
+  {
+    "id": 3,
+    "name": "Alex Johnson",
+    "email": "alex.johnson@techmail.com",
+    "bio": "Full-stack developer and DevOps enthusiast passionate about cloud architecture"
+  },
+  {
+    "id": 4,
+    "name": "Maria Garcia",
+    "email": "maria.garcia@codewriters.io",
+    "bio": "Senior software engineer focusing on TypeScript, Node.js, and API design patterns"
+  },
+  {
+    "id": 5,
+    "name": "David Chen",
+    "email": "david.chen@devblog.net",
+    "bio": "Frontend specialist and React expert, contributing to open-source projects"
+  },
+  {
+    "id": 6,
+    "name": "Sarah Williams",
+    "email": "sarah.w@techinsights.com",
+    "bio": "Backend developer with expertise in database design and microservices architecture"
+  },
+  {
+    "id": 7,
+    "name": "Michael Brown",
+    "email": "michael.brown@webdev.org",
+    "bio": "Technical writer and educator helping developers learn modern programming practices"
+  },
+  {
+    "id": 8,
+    "name": "Emily Taylor",
+    "email": "emily.taylor@codemagazine.com",
+    "bio": "Software architect with a passion for clean code and design patterns"
+  },
+  {
+    "id": 9,
+    "name": "Robert Martinez",
+    "email": "rob.martinez@devworld.io",
+    "bio": "Mobile and web developer specializing in cross-platform application development"
+  },
+  {
+    "id": 10,
+    "name": "Lisa Anderson",
+    "email": "lisa.anderson@techblog.com",
+    "bio": "Data engineer and Python developer with focus on API development and testing"
+  }
+]
