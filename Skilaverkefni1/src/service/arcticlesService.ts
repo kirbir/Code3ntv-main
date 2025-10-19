@@ -24,6 +24,7 @@ function createId() {
 }
 
 
+/// LOAD ARTICLES FROM FILE - OPTIONAL PAGINATED - ASYNC
 export async function loadArticlesPaginatedAsync(
     filePath: string,
     page?: number | undefined,
@@ -57,6 +58,7 @@ export async function loadArticlesPaginatedAsync(
     }
 }
 
+/// ADD AN ARTICLE AND FORWARD TO SAVE FUNCTION
 export async function addArticle(title: string, content: string, authorId: string): Promise<ArticlesResponse> {
 
     const articles = await loadArticlesPaginatedAsync(articlesFilePath);
@@ -72,6 +74,7 @@ export async function addArticle(title: string, content: string, authorId: strin
     return newArticle;
 }
 
+/// CONVERT JSON TO STRING AND SAVE TO FILE DB
 export async function saveArticle(articles: ArticlesResponse[]) {
     try {
         const jsonString = JSON.stringify(articles, null, 2);
@@ -81,7 +84,7 @@ export async function saveArticle(articles: ArticlesResponse[]) {
     }
 }
 
-
+/// DELETE A ARTICLE BY ID AND UPDATE FILE DB
 export async function deleteArticle(id:string):Promise<boolean> {
     const articles = await loadArticlesPaginatedAsync(articlesFilePath);
     const article = articles.find((article) => {return article.id == id});

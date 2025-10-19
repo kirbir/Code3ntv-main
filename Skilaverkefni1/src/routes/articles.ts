@@ -1,7 +1,5 @@
 import express, { type Request, type Response, type NextFunction } from 'express';
 import { validateParams, validateQuery } from "../middleware/validate";
-import { errorHandler } from "../middleware/errorHandler";
-import fs from 'fs/promises';
 import path from 'path';
 import { loadArticlesPaginatedAsync, ArticlesResponse, addArticle, deleteArticle } from "../service/arcticlesService.js"
 import { fileURLToPath } from 'url';
@@ -14,6 +12,7 @@ const __dirname = path.dirname(__filename);
 const router = express.Router();
 const articlesFilePath = path.join(__dirname, '../data/articles.json');
 
+/// GET ARTICLES BY ID ENDPOINT
 router.get(
   '/:id',
   validateParams(UUIDParams),
@@ -34,7 +33,7 @@ router.get(
   }
 );
 
-/// Get all articles from file
+/// GET ALL ARTICLES ENDPOINT
 router.get('/', validateQuery(ArticlesQuery), async (req: Request, res: Response, next:NextFunction) => {
 try {
   const articles = await loadArticlesPaginatedAsync(articlesFilePath);
@@ -45,7 +44,7 @@ try {
 }
 });
 
-
+/// CREATE NEW ARTICLE ENDPOINT
 router.post('/', validate(AddArticleRequest), async (req: Request, res: Response, next:NextFunction) => {
   try {
     const { title, content, authorId } = req.body;
@@ -57,6 +56,7 @@ router.post('/', validate(AddArticleRequest), async (req: Request, res: Response
   }
 });
 
+/// DELETE ARTICLE BY ID ENDPOINT
 router.delete('/:id', validateParams(UUIDParams), async (req: Request, res:Response, next:NextFunction) => {
   try {
     const {id} = req.params;
