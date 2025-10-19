@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const AddAuthorRequest = z.object({
     name: z.string().min(3).max(100, 'Title can not exceed 100 characters.'),
     email: z.string().email('Invalid E-mail format'),
-    bio: z.number().int().positive('authorId should be positive number!')
+    bio: z.string().optional()
 });
 
 export const AuthorsQuery = z.object({

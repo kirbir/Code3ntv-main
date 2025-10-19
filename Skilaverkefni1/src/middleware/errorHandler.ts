@@ -1,20 +1,19 @@
 import type { Request, Response, NextFunction } from 'express';
 
-interface AppError extends Error {
+export class AppError extends Error {
+  status: number;
   statusCode?: number;
-}
 
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+    this.name = 'AppError';
+  }
+}
 
 
 import z from 'zod';
 
-/**
- * Handle errors
- * @param error - The error to handle
- * @param request - The request object
- * @param response - The response object
- * @param next - The next function
- */
 export const errorHandler = (
   error: any,
   request: Request,
@@ -40,8 +39,11 @@ export const errorHandler = (
   const message = error.message || 'Internal Server Error';
 
   response.status(status).json({
-    success: false,
-    error: message,
+    error: {
+      status: status,
+      message: message,
+    }
   });
+
 };
 

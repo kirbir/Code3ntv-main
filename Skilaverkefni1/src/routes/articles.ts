@@ -17,19 +17,23 @@ router.get(
   '/:id',
   validateParams(UUIDParams),
   async (request, response, next: NextFunction) => {
-    const { id } = request.params;
+    try {
+      const { id } = request.params;
 
-    const articles = await loadArticlesPaginatedAsync(articlesFilePath);
-    const article = articles.find((movie: ArticlesResponse) => {
-      return movie.id === id;
-    });
-
-    if (!article) {
-      response.status(404).json({ success: false, error: 'Article not found.' });
-      return;
+      const articles = await loadArticlesPaginatedAsync(articlesFilePath);
+      const article = articles.find((movie: ArticlesResponse) => {
+        return movie.id === id;
+      });
+  
+      if (!article) {
+        response.status(404).json({ success: false, error: 'Article not found.' });
+        return;
+      }
+  
+      response.status(200).json({ success: true, data: article });
+    } catch (error) {
+      next(error);
     }
-
-    response.status(200).json({ success: true, data: article });
   }
 );
 
