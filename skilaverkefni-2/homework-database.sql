@@ -757,7 +757,20 @@ GROUP BY albums.id, albums.title, albums.release_year, albums.duration_minutes,
 -- Pick any artist from your database and show all their albums with:
 -- Album title, release year, rating, sales in millions, and genres (comma-separated)
 -- Sort by most recent first
-
+SELECT 
+    albums.title,
+    albums.release_year,
+    albums.rating,
+    albums.sales_millions,
+    STRING_AGG(genres.name, ', ') AS genres
+FROM artists
+JOIN album_artists ON artists.id = album_artists.artist_id
+JOIN albums ON album_artists.album_id = albums.id
+LEFT JOIN album_genres ON albums.id = album_genres.album_id
+LEFT JOIN genres ON album_genres.genre_id = genres.id
+WHERE artists.name = 'The Beatles'  -- Replace with any artist name
+GROUP BY albums.id, albums.title, albums.release_year, albums.rating, albums.sales_millions
+ORDER BY albums.release_year DESC;
 
 
 -- Exercise 10.4: Search functionality
@@ -765,7 +778,35 @@ GROUP BY albums.id, albums.title, albums.release_year, albums.duration_minutes,
 -- Return results from all three types combined
 -- Show what type it is ('album', 'artist', or 'song') and the name
 -- Include some related information for context
+SELECT 
+    'album' AS type,
+    albums.title AS name,
+    artists.name AS context_info
+FROM albums
+JOIN album_artists ON albums.id = album_artists.album_id
+JOIN artists ON album_artists.artist_id = artists.id
+WHERE albums.title ILIKE '%day%'
 
+UNION ALL
+
+SELECT 
+    'artist' AS type,
+    artists.name AS name,
+    artists.country AS context_info
+FROM artists
+WHERE artists.name ILIKE '%day%'
+
+UNION ALL
+
+SELECT 
+    'song' AS type,
+    songs.title AS name,
+    albums.title AS context_info
+FROM songs
+LEFT JOIN albums ON songs.album_id = albums.id
+WHERE songs.title ILIKE '%day%'
+
+ORDER BY type, name;
 
 
 -- Exercise 10.5: Top genres by average rating
@@ -774,7 +815,17 @@ GROUP BY albums.id, albums.title, albums.release_year, albums.duration_minutes,
 -- - At least 3 albums in that genre
 -- Show the genre name, average rating, and album count
 -- Sort by highest average rating first
-
+SELECT 
+    genres.name AS genre_name,
+    ROUND(AVG(albums.rating), 2) AS average_rating,
+    COUNT(albums.id) AS album_count
+FROM genres
+JOIN album_genres ON genres.id = album_genres.genre_id
+JOIN albums ON album_genres.album_id = albums.id
+GROUP BY genres.id, genres.name
+HAVING AVG(albums.rating) > 7.5 
+   AND COUNT(albums.id) >= 3
+ORDER BY average_rating DESC;
 
 
 -- ============================================
