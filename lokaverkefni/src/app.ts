@@ -1,15 +1,15 @@
 import express from "express";
-import cuisineRouter from "./routes/cuisineRoutes.js";
-import recipeRouter from "./routes/recipeRoutes.js";
+import eventRoutes from "./routes/eventRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
 
+// Middleware
 app.use(express.json());
-// app.use("/api/cuisines", cuisineRouter);
-// app.use("/api/recipes", recipeRouter);
+
+// Routes
+app.use("/api/events", eventRoutes);
 
 app.use(errorHandler);
 
 export default app;
-
