@@ -52,7 +52,7 @@ export const getVenueByIdWithEvents = async (
       throw new NotFoundError("Venue not found.");
     }
 
-    res.json(venue);
+    res.json(venue)
   } catch (error) {
     next(error);
   }

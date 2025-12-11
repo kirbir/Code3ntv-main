@@ -42,6 +42,13 @@ export const errorHandler = (
   response: Response,
   next: NextFunction
 ) => {
+  // Log the error to console
+  console.error(
+    `[${new Date().toISOString()}] ${request.method} ${request.path} - Error: ${
+      error.message || "Unknown error"
+    }`
+  );
+
   if (error instanceof ZodError) {
     const details = error.issues.map((issue) => ({
       field: issue.path.join("."),
