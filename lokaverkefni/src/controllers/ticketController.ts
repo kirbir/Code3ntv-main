@@ -12,7 +12,7 @@ export const getTicketsByEventId = async (
     const tickets = await TicketModel.getTicketsByEventId(id);
 
     if (tickets.length === 0) {
-      throw new NotFoundError("Tickets not found.");
+      throw new NotFoundError("Tickets not found for this event.");
     }
 
     res.json(tickets);
