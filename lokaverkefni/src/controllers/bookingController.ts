@@ -4,6 +4,26 @@ import * as EventModel from "../models/eventModel.js";
 import { NotFoundError } from "../middleware/errorHandler.js";
 import db from "../config/db.js";
 
+export const getBookingHistory = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const user_id = req.user?.userId;
+
+    if (!user_id) {
+      throw new Error("User not authenticated");
+    }
+
+    const bookings = await BookingModel.getBookingHistory(user_id);
+
+    res.json({ bookings });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const createBooking = async (
   req: Request,
   res: Response,
@@ -32,7 +52,7 @@ export const createBooking = async (
       throw new Error("Cannot book tickets for past events");
     }
 
-    // 2. Validate tickets exist and have enough availability
+    // 2. Validate tickets exist and availability
     let totalAmount = 0;
 
     for (const ticketRequest of tickets) {

@@ -20,22 +20,17 @@ export const authenticate = (
   try {
     const authHeader = req.headers.authorization;
 
-    console.log("🔍 Auth Header:", authHeader);
-
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       throw new AppError("Authentication required", 401);
     }
 
     const token = authHeader.substring(7); // Remove "Bearer " prefix
-    console.log("🎫 Token (first 20 chars):", token.substring(0, 20) + "...");
 
     const payload = verifyToken(token);
-    console.log("✅ Token verified, user:", payload.userId);
 
     req.user = payload;
     next();
   } catch (error) {
-    console.error("❌ Auth error:", error);
     if (error instanceof AppError) {
       next(error);
     } else {

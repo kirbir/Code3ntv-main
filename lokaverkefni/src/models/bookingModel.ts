@@ -15,6 +15,39 @@ export interface BookingTicket {
   quantity: number;
 }
 
+export const getBookingHistory = async (userId: number) => {
+  return await db.any(
+    `
+  SELECT 
+    b.id,
+    b.event_id,
+    b.status,
+    b.total_amount,
+    b.created_at,
+    e.title as event_title,
+    e.start_time as event_start_time,
+    v.name as venue_name,
+    json_agg(
+      json_build_object(
+        'ticket_id', bt.ticket_id,
+        'quantity', bt.quantity,
+        'unit_price', bt.unit_price,
+        'section', t.section
+      )
+    ) as tickets
+  FROM bookings b
+  JOIN events e ON b.event_id = e.id
+  JOIN venues v ON e.venue_id = v.id
+  LEFT JOIN booking_tickets bt ON b.id = bt.booking_id
+  LEFT JOIN tickets t ON bt.ticket_id = t.id
+  WHERE b.user_id = $1
+  GROUP BY b.id, e.title, e.start_time, v.name
+  ORDER BY b.created_at DESC
+  `,
+    [userId]
+  );
+};
+
 export const createBooking = async (
   userId: number,
   eventId: number,
