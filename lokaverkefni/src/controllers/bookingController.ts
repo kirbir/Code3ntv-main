@@ -35,12 +35,11 @@ export const createBooking = async (
     // @ts-ignore - user_id comes from auth middleware
     const user_id = req.user?.userId;
 
-    // Validate user is authenticated
     if (!user_id) {
       throw new Error("User not authenticated");
     }
 
-    // 1. Validate event exists and hasn't passed
+    // Validate event exists and hasn't passed
     const event = await EventModel.getEventById(event_id);
     if (!event) {
       throw new NotFoundError("Event not found");
@@ -52,7 +51,7 @@ export const createBooking = async (
       throw new Error("Cannot book tickets for past events");
     }
 
-    // 2. Validate tickets exist and availability
+    // Validate tickets exist and availability
     let totalAmount = 0;
 
     for (const ticketRequest of tickets) {
