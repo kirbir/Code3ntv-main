@@ -1,5 +1,6 @@
 import db from "../../../skilaverkefni3/src/config/db.js";
 import * as bcrypt from "bcrypt";
+import { cancelFutureBookings } from "./bookingModel.js";
 
 export interface User {
   id?: number;
@@ -94,5 +95,6 @@ export const updateUser = async (
 };
 
 export const deleteUser = async (id: number): Promise<void> => {
+  await cancelFutureBookings(id);
   await db.none(`DELETE FROM users WHERE id = $1`, [id]);
 };
