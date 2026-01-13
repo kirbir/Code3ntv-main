@@ -15,8 +15,6 @@ export interface BookingTicket {
   quantity: number;
 }
 
-
-
 export const getBookingHistory = async (userId: number) => {
   return await db.any(
     `
@@ -48,6 +46,44 @@ export const getBookingHistory = async (userId: number) => {
   `,
     [userId]
   );
+};
+
+export const cancelFutureBookings = async (userId: number) => {
+  return await db.tx(async (t) => {
+    // Gather all future bookings for user before deleting account
+    const futureBookings = await t.any(
+      `SELECT 
+      b.id,
+      b.event_id,
+      bt.ticket_id,
+      bt.quantity
+      FROM bookings b
+      JOIN events e ON b.event_id = e.id
+      JOIN bookings_tickets bt ON b.id = bt.booking_id
+      WHERE b.user_id = $1
+        AND e.start_time > NOW()
+        AND b.status = 'confirmed'
+      `,
+      [userId]
+    );
+
+    // Cancel the bookings
+    for (const booking of futureBookings) {
+      await t.none(
+        `
+        UPDATE bookings SET status = 'cancelled' WHERE id = $1`,
+        [booking.id]
+      );
+
+      // Return tickets to available pool
+      await t.none(
+        `UPDATE tickets 
+               SET available_quantity = available_quantity + $1 
+               WHERE id = $2`,
+        [booking.quantity, booking.ticket_id]
+      );
+    }
+  });
 };
 
 export const createBooking = async (
