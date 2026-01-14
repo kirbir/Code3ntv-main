@@ -22,7 +22,7 @@ const router = express.Router();
 router.post("/register", validate(registerSchema), registerController);
 router.post("/login", validate(loginSchema), loginController);
 
-// Protected routes (require authentication)
+// Protected routes
 router.get("/profile", authenticate, getProfileController);
 router.put(
   "/profile",
