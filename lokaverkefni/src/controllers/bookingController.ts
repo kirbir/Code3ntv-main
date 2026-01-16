@@ -77,11 +77,9 @@ export const createBooking = async (
         );
       }
 
-      // Calculate total
       totalAmount += ticket.price * ticketRequest.quantity;
     }
 
-    // 3. Create the booking (transaction handles the DB updates)
     const booking = await BookingModel.createBooking(
       user_id,
       event_id,
@@ -89,7 +87,6 @@ export const createBooking = async (
       totalAmount
     );
 
-    // 4. Return success response
     res.status(201).json({
       message: "Booking created successfully",
       booking: {
