@@ -1,7 +1,12 @@
 import type { Response, Request, NextFunction } from "express";
 import * as BookingModel from "../models/bookingModel.js";
 import * as EventModel from "../models/eventModel.js";
-import { NotFoundError } from "../middleware/errorHandler.js";
+import {
+  NotFoundError,
+  AppError,
+  UnauthorizedError,
+} from "../middleware/errorHandler.js";
+
 import db from "../config/db.js";
 
 export const getBookingHistory = async (
@@ -30,13 +35,12 @@ export const createBooking = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    // Get data from request body
     const { event_id, tickets } = req.body;
     // @ts-ignore - user_id comes from auth middleware
     const user_id = req.user?.userId;
 
     if (!user_id) {
-      throw new Error("User not authenticated");
+      throw new UnauthorizedError("User not authenticated");
     }
 
     // Validate event exists and hasn't passed
@@ -48,7 +52,7 @@ export const createBooking = async (
     // Check if event has already started/passed
     const eventStartTime = new Date(event.start_time);
     if (eventStartTime < new Date()) {
-      throw new Error("Cannot book tickets for past events");
+      throw new AppError("Cannot book tickets for past events", 400);
     }
 
     // Validate tickets exist and availability
