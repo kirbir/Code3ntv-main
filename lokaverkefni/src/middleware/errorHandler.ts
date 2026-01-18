@@ -17,6 +17,18 @@ export class NotFoundError extends AppError {
     super(message, 404);
   }
 }
+
+export class UnauthorizedError extends AppError {
+  constructor(message = "Unauthorized") {
+    super(message, 401);
+  }
+}
+
+export class ConflictError extends AppError {
+  constructor(message = "Conflict") {
+    super(message, 409);
+  }
+}
 /**
  * Handle errors
  * @param error - The error to handle
