@@ -11,6 +11,38 @@ export interface Event {
   base_price: number;
 }
 
+export const getEventById = async (id: number) => {
+  // Get event with venue info
+  const event = await db.oneOrNone(
+    `SELECT 
+      e.*,
+      v.name as venue_name,
+      v.address as venue_address,
+      v.city as venue_city,
+      v.capacity as venue_capacity
+    FROM events e
+    JOIN venues v ON e.venue_id = v.id
+    WHERE e.id = $1`,
+    [id]
+  );
+
+  if (!event) return null;
+
+  // Get categories for this event
+  const categories = await db.any(
+    `SELECT c.id, c.name, c.description
+    FROM categories c
+    JOIN event_categories ec ON c.id = ec.category_id
+    WHERE ec.event_id = $1`,
+    [id]
+  );
+
+  return {
+    ...event,
+    categories,
+  };
+};
+
 export const getEvents = async (
   sortBy?: string,
   order?: string
