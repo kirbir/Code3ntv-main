@@ -25,6 +25,7 @@ export const authenticate = (
     }
 
     const token = authHeader.substring(7); // Remove "Bearer " prefix
+
     const payload = verifyToken(token);
 
     req.user = payload;
