@@ -36,6 +36,7 @@ describe("Venue Tests", () => {
     eventId = event.id;
   });
 
+  // UC3: Get Venue Details - Happy Path
   it("should get venue details by id", async () => {
     const response = await request(app)
       .get(`/api/venues/${venueId}`)
@@ -49,12 +50,14 @@ describe("Venue Tests", () => {
     expect(response.body).toHaveProperty("capacity");
   });
 
+  // UC3: Get Venue Details - Alternate Flow (Not Found)
   it("should return 404 when venue does not exist", async () => {
     const response = await request(app).get("/api/venues/99999").expect(404);
 
     expect(response.body).toHaveProperty("error");
   });
 
+  // UC3: Get Venue with Upcoming Events - Happy Path
   it("should get venue with upcoming events", async () => {
     const response = await request(app)
       .get(`/api/venues/${venueId}/events`)
@@ -70,6 +73,7 @@ describe("Venue Tests", () => {
     }
   });
 
+  // UC3: Get Venue with Upcoming Events - No Events
   it("should return empty events array when venue has no upcoming events", async () => {
     const emptyVenue = await db.one(
       `INSERT INTO venues (name, address, city, capacity) 

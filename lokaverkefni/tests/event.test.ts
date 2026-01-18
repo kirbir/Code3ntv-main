@@ -68,6 +68,7 @@ describe("Event Tests", () => {
     expect(response.body[0]).toHaveProperty("description");
   });
 
+  // UC1: List Events - Alternate Flow 2a (Empty list)
   it("should return empty array when no events exist", async () => {
     await db.none("DELETE FROM event_categories WHERE event_id = $1", [
       eventId,

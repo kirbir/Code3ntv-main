@@ -144,6 +144,7 @@ describe("Booking Tests", () => {
   });
 
   // UC6: Create Booking - Happy Path
+  // UC7: Book Tickets - Happy Path
   it("should create a booking successfully with valid token", async () => {
     // Ensure user still exists
     const userExists = await db.oneOrNone(
@@ -187,7 +188,7 @@ describe("Booking Tests", () => {
     expect(response.body.booking.status).toBe("confirmed");
   });
 
-  // Authentication Test - Alternate Flow
+  // UC7: Book Tickets - Requires Authentication
   it("should not allow booking without authentication", async () => {
     const bookingData = {
       event_id: 1,
@@ -203,6 +204,7 @@ describe("Booking Tests", () => {
   });
 
   // UC7: View Booking History - Happy Path
+  // UC6: View Booking History - Happy Path
   it("should get user booking history", async () => {
     const response = await request(app)
       .get("/api/bookings")
@@ -214,6 +216,7 @@ describe("Booking Tests", () => {
   });
 
   // UC6: Booking Past Event - Alternate Flow 2b
+  // UC7: Book Tickets - Alternate Flow (Past Event)
   it("should not allow booking for past events", async () => {
     const bookingData = {
       event_id: pastEventId, // Assume this is a past event
@@ -230,6 +233,7 @@ describe("Booking Tests", () => {
   });
 
   // UC8: Cancel Booking - Happy Path (more than 24 hours before event)
+  // UC8: Cancel Booking - Happy Path
   it("should cancel a booking successfully when more than 24 hours before event", async () => {
     // First, create a booking to cancel
     const bookingData = {
@@ -256,6 +260,7 @@ describe("Booking Tests", () => {
   });
 
   // UC8: Cancel Booking - Alternate Flow 2a (booking doesn't exist)
+  // UC8: Cancel Booking - Alternate Flow 1a (Booking Not Found)
   it("should return 404 when trying to cancel non-existent booking", async () => {
     const response = await request(app)
       .delete(`/api/bookings/99999`)
@@ -266,6 +271,7 @@ describe("Booking Tests", () => {
   });
 
   // UC8: Cancel Booking - Alternate Flow 2b (booking belongs to another user)
+  // UC8: Cancel Booking - Alternate Flow (Unauthorized)
   it("should return 403 when trying to cancel another user's booking", async () => {
     // Ensure first user exists
     const firstUserExists = await db.oneOrNone(
@@ -327,6 +333,7 @@ describe("Booking Tests", () => {
   });
 
   // UC8: Cancel Booking - Alternate Flow 3a (less than 24 hours before event)
+  // UC8: Cancel Booking - Alternate Flow 4a (Within 24 Hours)
   it("should not allow cancellation less than 24 hours before event", async () => {
     // Create an event that starts in 12 hours
     const venue = await db.one(

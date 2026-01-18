@@ -40,7 +40,7 @@ describe("User Authentication Tests", () => {
     const response = await request(app)
       .post("/api/users/register")
       .send(duplicateUser)
-      .expect(409); // ConflictError
+      .expect(409); 
 
     expect(response.body).toHaveProperty("error");
     expect(response.body.error.message).toContain("Email");

@@ -109,6 +109,7 @@ describe("User Profile Tests", () => {
     ticketId = ticket.id;
   });
 
+  // UC9: Get User Profile - Happy Path
   it("should get user profile", async () => {
     // Ensure user still exists
     const userExists = await db.oneOrNone(
@@ -141,12 +142,14 @@ describe("User Profile Tests", () => {
     expect(response.body).not.toHaveProperty("password");
   });
 
+  // UC9: Get User Profile - Requires Authentication
   it("should require authentication to get profile", async () => {
     const response = await request(app).get("/api/users/profile").expect(401);
 
     expect(response.body).toHaveProperty("error");
   });
 
+  // UC9: Update Profile - Happy Path
   it("should update profile email successfully", async () => {
     const response = await request(app)
       .put("/api/users/profile")
@@ -159,6 +162,7 @@ describe("User Profile Tests", () => {
     expect(response.body.user.email).toBe("updated@example.com");
   });
 
+  // UC9: Update Profile - Alternate Flow (Duplicate Email)
   it("should not allow duplicate email when updating profile", async () => {
     const anotherUser = {
       email: "another@example.com",
@@ -177,6 +181,7 @@ describe("User Profile Tests", () => {
     expect(response.body.error.message).toContain("Email");
   });
 
+  // UC9: Update Profile - Requires Authentication
   it("should require authentication to update profile", async () => {
     const response = await request(app)
       .put("/api/users/profile")
@@ -186,6 +191,7 @@ describe("User Profile Tests", () => {
     expect(response.body).toHaveProperty("error");
   });
 
+  // UC10: Delete Account - Happy Path
   it("should delete user account successfully", async () => {
     const response = await request(app)
       .delete("/api/users/profile")
@@ -205,6 +211,7 @@ describe("User Profile Tests", () => {
     expect(loginResponse.body).toHaveProperty("error");
   });
 
+  // UC10: Delete Account - Cancels Future Bookings
   it("should cancel future bookings when deleting account", async () => {
     await request(app)
       .post("/api/bookings")
@@ -228,6 +235,7 @@ describe("User Profile Tests", () => {
     expect(ticket.available_quantity).toBe(100);
   });
 
+  // UC10: Delete Account - Requires Authentication
   it("should require authentication to delete account", async () => {
     const response = await request(app)
       .delete("/api/users/profile")
