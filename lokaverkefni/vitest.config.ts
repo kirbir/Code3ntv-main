@@ -10,5 +10,9 @@ export default defineConfig({
     sequence: {
       shuffle: false,
     },
+    env: {
+      NODE_ENV: "test",
+      PGDATABASE_TEST: "tix_test_data",
+    },
   },
 });

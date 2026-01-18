@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import request from "supertest";
 import app from "../src/app.js";
-import db from "../src/config/db.test.js";
+import db from "../src/config/db.js";
 
 describe("User Profile Tests", () => {
   let authToken: string;

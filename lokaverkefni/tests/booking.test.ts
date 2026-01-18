@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterAll } from "vitest";
 import type { Event } from "../src/models/eventModel.js";
 import request from "supertest";
 import app from "../src/app.js";
-import db from "../src/config/db.test.js";
+import db from "../src/config/db.js";
 
 describe("Booking Tests", () => {
   let authToken: string;
