@@ -1,356 +1,241 @@
-# Lokaverkefni - Tix API
+# Tix API
 
-## Verkefnalýsing
+Event ticketing API built with Express, TypeScript, and PostgreSQL. Users can browse events, book tickets, and manage their bookings.
 
-Búðu til RESTful API fyrir miðasölukerfið svipað og Tix. Kerfið gerir notendum kleift að skoða viðburði, staði og kaupa miða. Notaðu þær venjur sem þú hefur lært í áfanganum.
+> **Note:** This is a final project for 3rd semester Programming at NTV. Not affiliated with the official tix.is.
 
-## Tækni
+## What's Inside
 
-- **Backend Framework**: Express.js með TypeScript
-- **Gagnagrunnur**: PostgreSQL
-- **Prófanir**: Vitest + Supertest
+- User authentication with JWT
+- Event browsing with filters and sorting
+- Ticket booking with availability tracking
+- Booking management (view history, cancel bookings)
+- 24-hour cancellation policy
+- Profile management
 
-## Nauðsynlegir eiginleikar
+## Tech Stack
 
-API-ið þitt verður að styðja eftirfarandi grunneiningar:
+- Express.js + TypeScript
+- PostgreSQL with pg-promise
+- JWT authentication
+- Zod validation
+- Vitest + Supertest (31 integration tests)
 
-- Notendur (með auðkenningu)
-- Viðburðir (tónleikar, íþróttir, leikhús, o.s.frv.)
-- Staðir
-- Miðar
-- Bókanir/Kaup
-- Flokkar
+## Setup
 
-## Notkunartilvik (Use Cases)
+### Prerequisites
 
-### UC1: Skoða viðburði
+- Node.js (v18+)
+- PostgreSQL (v14+)
+- npm
 
-**Leikari**: Gestur (Óauðkenndur notandi)  
-**Forsendur**: Engar  
-**Aðalflæði**:
+### Installation
 
-1. Notandi biður um lista yfir viðburði
-2. Kerfið birtir alla væntanlega viðburði
-3. Notandi beitir síum (flokkur, dagsetningabil, borg, staður)
-4. Kerfið skilar síuðum niðurstöðum
-5. Notandi raðar niðurstöðum (eftir dagsetningu, verði eða vinsældum)
-6. Kerfið birtir raðaða viðburði
+```bash
+git clone https://github.com/kirbir/Code3ntv-main.git
+cd Code3ntv-main/lokaverkefni
+npm install
+```
 
-**Eftirskilyrði**: Notandi sér lista yfir viðburði sem passa við skilyrði  
-**Önnur flæði**:
+### Environment Variables
 
-- 2a. Engir viðburðir fundust: Kerfið skilar tómum lista með viðeigandi skilaboðum
+Create a `.env` file:
 
----
+```env
+# Database (required)
+PGHOST=localhost
+PGPORT=5433
+PGDATABASE=tix
+PGUSER=your_username
+PGPASSWORD=your_password
 
-### UC2: Skoða upplýsingar um viðburð
+# Test database (used automatically when running tests)
+PGDATABASE_TEST=tix_test_data
 
-**Leikari**: Gestur  
-**Forsendur**: Viðburður er til í kerfinu  
-**Aðalflæði**:
+# JWT (optional - has defaults)
+# JWT_SECRET=your_secret_key_here
+# JWT_EXPIRES_IN=7d
 
-1. Notandi velur viðburð
-2. Kerfið birtir upplýsingar um viðburð (nafn, lýsing, dagsetning, tími, staður, flokkur)
-3. Kerfið sýnir tiltæka miða og verðlagningu
+# Server (optional)
+# PORT=3000
+```
 
-**Eftirskilyrði**: Notandi sér allar upplýsingar um viðburð  
-**Önnur flæði**:
+**Notes:**
+- The app automatically uses `tix_test_data` when running tests
+- JWT variables are optional (defaults: secret = "your-secret-key-change-in-production", expires = "24h")
+- PORT is optional (defaults to 3000)
 
-- 1a. Viðburður fannst ekki: Kerfið skilar 404 villu
+### Database Setup
 
----
+1. Create the databases:
 
-### UC3: Skoða upplýsingar um stað
+```sql
+CREATE DATABASE tix;
+CREATE DATABASE tix_test_data;
+```
 
-**Leikari**: Gestur  
-**Forsendur**: Engar  
-**Aðalflæði**:
+2. Load the schema and seed data (production only):
 
-1. Notandi biður um upplýsingar um stað
-2. Kerfið birtir upplýsingar um stað (nafn, heimilisfang, rýmd)
-3. Notandi skoðar væntanlega viðburði á staðnum
-4. Kerfið birtir viðburði sem eru áætlaðir á þeim stað
+```bash
+psql -h localhost -p 5433 -U your_username -d tix -f sql/db-seed-data.sql
+```
 
-**Eftirskilyrði**: Notandi sér upplýsingar um stað og tengda viðburði
+The test database schema is created automatically when you run tests.
 
----
+## Running the App
 
-### UC4: Skrá notanda
+Development mode (with hot reload):
 
-**Leikari**: Gestur  
-**Forsendur**: Notandi er ekki með reikning  
-**Aðalflæði**:
+```bash
+npm run dev
+```
 
-1. Notandi gefur upp skráningarupplýsingar (nafn, netfang, lykilorð)
-2. Kerfið staðfestir innsláttargögn
-3. Kerfið athugar að netfang sé ekki þegar skráð
-4. Kerfið býr til nýjan notendareikning með hössuðu lykilorði
-5. Kerfið skilar staðfestingu á árangri
+Production:
 
-**Eftirskilyrði**: Nýr notandareikningur búinn til  
-**Önnur flæði**:
+```bash
+npm run build
+npm start
+```
 
-- 2a. Ógild gögn: Kerfið skilar villum við staðfestingu
-- 3a. Netfang er þegar til: Kerfið skilar villuskilaboðum
+Server runs at `http://localhost:3000`
 
----
+## Running Tests
 
-### UC5: Innskráning
+Run all tests (watch mode):
 
-**Leikari**: Gestur  
-**Forsendur**: Notandi er með skráðan reikning  
-**Aðalflæði**:
+```bash
+npm test
+```
 
-1. Notandi gefur upp auðkenni (netfang, lykilorð)
-2. Kerfið staðfestir auðkenni
-3. Kerfið býr til auðkenningarmerki (token)
-4. Kerfið skilar merki til notanda
+Run once:
 
-**Eftirskilyrði**: Notandi er auðkenndur  
-**Önnur flæði**:
+```bash
+npm test -- --run
+```
 
-- 2a. Ógild auðkenni: Kerfið skilar auðkenningarvillu
+Run specific file:
 
----
+```bash
+npm test -- auth.test.ts
+```
 
-### UC6: Kaupa miða
+**Test coverage:**
+- Authentication (5 tests)
+- Events (6 tests)
+- Venues (4 tests)
+- Bookings (8 tests)
+- User Profile (8 tests)
 
-**Leikari**: Auðkenndur notandi  
-**Forsendur**: Notandi er innskráður, viðburður er með tiltæka miða  
-**Aðalflæði**:
+Total: 31 integration tests ✓
 
-1. Notandi velur viðburð og æskilega miða
-2. Kerfið staðfestir að miðar séu tiltækir
-3. Notandi gefur upp greiðsluupplýsingar
-4. Kerfið býr til bókun
-5. Kerfið minnkar fjölda tiltækra miða
-6. Kerfið skilar staðfestingu á bókun með einkvæmu auðkenni
+## API Endpoints
 
-**Eftirskilyrði**: Bókun búin til, miðar teknir frá  
-**Önnur flæði**:
+Base URL: `http://localhost:3000/api`
 
-- 2a. Ekki nægir miðar: Kerfið skilar villu
-- 2b. Dagsetning viðburðar er liðin: Kerfið skilar villu
-- 4a. Greiðsla mistókst: Kerfið skilar villu, engin bókun búin til
+### Authentication
 
----
+- `POST /api/users/register` - Register
+- `POST /api/users/login` - Login
 
-### UC7: Skoða bókunarsögu
+### Events
 
-**Leikari**: Auðkenndur notandi  
-**Forsendur**: Notandi er innskráður  
-**Aðalflæði**:
+- `GET /api/events` - List events (supports filters/sorting)
+- `GET /api/events/:id` - Event details
+- `GET /api/events/:id/tickets` - Available tickets
 
-1. Notandi biður um sínar bókanir
-2. Kerfið sækir allar bókanir notanda
-3. Kerfið birtir lista yfir bókanir með upplýsingum (viðburður, dagsetning, miðar, verð)
+### Venues
 
-**Eftirskilyrði**: Notandi sér bókunarsögu sína  
-**Önnur flæði**:
+- `GET /api/venues/:id` - Venue details
+- `GET /api/venues/:id/events` - Upcoming events at venue
 
-- 2a. Engar bókanir fundust: Kerfið skilar tómum lista
+### Bookings (requires auth)
 
----
+- `POST /api/bookings` - Create booking
+- `GET /api/bookings` - Booking history
+- `DELETE /api/bookings/:id` - Cancel booking
 
-### UC8: Hætta við bókun
+### Profile (requires auth)
 
-**Leikari**: Auðkenndur notandi  
-**Forsendur**: Notandi er innskráður, bókun er til, viðburður er meira en 24 klukkustundum í burtu  
-**Aðalflæði**:
+- `GET /api/users/profile` - Get profile
+- `PUT /api/users/profile` - Update profile
+- `DELETE /api/users/profile` - Delete account
 
-1. Notandi velur bókun til að hætta við
-2. Kerfið staðfestir að bókun tilheyri notanda
-3. Kerfið athugar að afpöntun sé leyfð (>24 klukkustundir fyrir viðburð)
-4. Kerfið hættir við bókun
-5. Kerfið skilar miðum í tiltækan hóp
-6. Kerfið vinnur endurgreiðslu
-7. Kerfið staðfestir afpöntun
+## Example Requests
 
-**Eftirskilyrði**: Bókun afpöntuð, miðar tiltækir aftur  
-**Önnur flæði**:
+Register:
 
-- 2a. Bókun fannst ekki: Kerfið skilar 404 villu
-- 2b. Bókun tilheyrir öðrum notanda: Kerfið skilar 403 villu
-- 3a. Minna en 24 klukkustundir fyrir viðburð: Kerfið skilar villu, afpöntun ekki leyfð
+```bash
+curl -X POST http://localhost:3000/api/users/register \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@example.com", "password": "SecurePass123!"}'
+```
 
----
+Login:
 
-### UC9: Uppfæra prófíl
+```bash
+curl -X POST http://localhost:3000/api/users/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@example.com", "password": "SecurePass123!"}'
+```
 
-**Leikari**: Auðkenndur notandi  
-**Forsendur**: Notandi er innskráður  
-**Aðalflæði**:
+Create booking (requires token from login):
 
-1. Notandi biður um uppfærslu á prófíl
-2. Notandi gefur upp uppfærðar upplýsingar
-3. Kerfið staðfestir ný gögn
-4. Kerfið uppfærir notendaprófíl
-5. Kerfið skilar uppfærðum prófíl
+```bash
+curl -X POST http://localhost:3000/api/bookings \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -d '{"event_id": 1, "tickets": [{"ticket_id": 1, "quantity": 2}]}'
+```
 
-**Eftirskilyrði**: Notendaprófíll uppfærður  
-**Önnur flæði**:
+## Project Structure
 
-- 3a. Ógild gögn: Kerfið skilar villum við staðfestingu
-- 3b. Netfang er þegar í notkun: Kerfið skilar villu
+```
+lokaverkefni/
+├── src/
+│   ├── config/
+│   │   └── db.ts           # Database connection
+│   ├── controllers/        # Request handlers
+│   ├── models/             # Database queries
+│   ├── routes/             # API routes
+│   ├── middleware/         # Auth, validation, errors
+│   ├── schemas/            # Zod validation
+│   ├── utils/              # JWT helpers
+│   ├── app.ts              # Express setup
+│   └── server.ts           # Entry point
+├── tests/                  # Integration tests
+├── sql/
+│   └── db-seed-data.sql    # Schema and seed data
+├── .env                    # Config (create this)
+├── package.json
+├── tsconfig.json
+└── vitest.config.ts
+```
 
----
+## Business Logic
 
-### UC10: Eyða reikningi
+**Ticket Availability:**
+- Real-time tracking prevents overbooking
+- Cancelled bookings return tickets to the pool
 
-**Leikari**: Auðkenndur notandi  
-**Forsendur**: Notandi er innskráður  
-**Aðalflæði**:
+**Cancellation Policy:**
+- Bookings can only be cancelled 24+ hours before the event
+- Automatic ticket availability updates
 
-1. Notandi biður um að eyða reikningi
-2. Kerfið staðfestir auðkenni notanda
-3. Kerfið hættir við allar framtíðarbókanir
-4. Kerfið eyðir notendareikningi
-5. Kerfið staðfestir eyðingu
+**Security:**
+- Bcrypt password hashing
+- JWT authentication
+- Input validation with Zod
+- Parameterized queries (SQL injection prevention)
 
-**Eftirskilyrði**: Notendareikningur fjarlægður úr kerfinu
+## Troubleshooting
 
-## Logik
+**Can't connect to database?**
+- Check PostgreSQL is running
+- Verify credentials in `.env`
 
-1. **Framboð miða**
+**Tests failing?**
+- Make sure `tix_test_data` database exists
+- Only the database needs to exist; schema is auto-created
 
-   - Ekki er hægt að bóka fleiri miða en eru tiltækir
-   - Afpantaðar bókanir skila miðum í tiltækan hóp
-
-2. **Afpöntun bókunar**
-
-   - Aðeins er hægt að afpanta bókanir allt að 24 klukkustundum fyrir viðburð
-
-3. **Dagsetningar viðburða**
-
-   - Ekki er hægt að bóka miða á liðna viðburði
-
-4. **Auðkenning notenda**
-
-   - Lykilorð verða að vera geymd á öruggan hátt
-   - Auðkenning er nauðsynleg fyrir öruggar aðgerðir
-
-5. **Staðfesting gagna**
-   - Gögn frá notanda þurfa að vera á réttu og staðfestu formi
-   - Viðeigandi villuskilaboð fyrir ógild gögn
-
-## Kröfur
-
-### API hönnun
-
-- RESTful endapunktar sem fylgja bestu venjum
-- Viðeigandi HTTP aðferðir og stöðukóðar
-- Skýr snið fyrir beiðnir og svör
-- Rétt villumeðhöndlun
-
-### Gagnagrunnur
-
-- Vel hannað skema með viðeigandi tengslum
-- Gagnaöryggi og takmarkanir
-- Skilvirkar fyrirspurnir
-
-### Öryggi
-
-- Örugg geymsla lykilorða
-- Öruggar leiðir sem krefjast auðkenningar
-- Staðfesting og hreinsun inntaks (Input validation and sanitization)
-
-### Prófanir
-
-Prófarnir þínir eiga að ná utan um um öll notkunartilvik og jaðartilvik.
-
-#### Hvað á að prófa
-
-**Fyrir hvert notkunartilvik**:
-
-- Prófa aðalflæðið (happy path)
-- Prófa öll önnur flæði (villutilvik)
-- Staðfesta rétta HTTP stöðukóða
-- Staðfesta uppbyggingu og innihald svargagna
-- Prófa staðfestingu inntaks
-
-**Auðkenning og heimild**:
-
-- Prófa öruggar leiðir án token (ætti að skila 401)
-- Prófa öruggar leiðir með ógilt token (ætti að skila 401)
-- Prófa öruggar leiðir með gilt token (ætti að virka)
-- Prófa að sækja gögn annarra notenda (ætti að skila 403)
-- Prófa lykilorðahössun (lykilorð eiga aldrei að vera geymd í textaformi)
-
-**Viðskiptalögík**:
-
-- Prófa skorður á framboði miða
-- Prófa tímatakmörk fyrir afpöntun bókunar
-- Prófa að afpantaðar bókanir skili miðum í hópinn
-- Prófa að koma í veg fyrir bókanir á liðna viðburði
-- Prófa að koma í veg fyrir tvítekið netfang við skráningu
-
-**Staðfesting gagna**:
-
-- Prófa með vantar nauðsynleg svæði
-- Prófa með ógilda gagnagerð
-- Prófa með ógild snið (netfang, dagsetningar, o.s.frv.)
-- Prófa jaðarskilyrði (neikvætt verð, o.s.frv.)
-
-**Gagnagrunnur aðgerðir**:
-
-- Prófa að búa til auðlindir
-- Prófa að lesa auðlindir (stök og listar)
-- Prófa að uppfæra auðlindir
-- Prófa að eyða auðlindum
-- Prófa tengsl milli eininga (cascading deletes, foreign keys)
-
-#### Skipulag prófana
-
-Skipuleggðu prófanir þínar eftir eiginleikum eða endapunktum:
-
-- Auðkenningarprófanir (skráning, innskráning)
-- Viðburðaprófanir (skoða, sía, skoða upplýsingar)
-- Staðaprófanir
-- Bókunarprófanir (búa til, skoða, hætta við)
-- Notendaprófílprófanir
-
-Notaðu setup og teardown til að stjórna ástandi gagnagrunnsprófa.
-
-### Gæði kóða
-
-- Hreinn, læsilegur, vel skipulagður kóði
-- Réttar TypeScript gerðir
-- Aðskilnaður áhyggjuefna (routes, controllers, models, services)
-- Villumeðhöndlunarmillilög
-
-## Skilakröfur
-
-1. **GitHub Repository** með:
-
-   - Fullkomnum frumkóða
-   - SQL skema og seed gagnaskrám
-   - Skýrum README með uppsetningarleiðbeiningum
-   - Skjölun á umhverfisbreytum
-
-2. **Skjölun**:
-
-   - Hvernig á að setja upp og keyra verkefnið
-   - Hvernig á að keyra prófanir
-   - Skjölun á API endapunktum
-
-3. **Prófanir**:
-   - Allar prófanir standast
-   - Góð prófunarumfjöllun
-
-## Einkunnaskilyrði
-
-- **Hönnun gagnagrunns (20%)**: Hönnun skema og tengsl
-- **Útfærsla API (30%)**: Virkni og bestu starfsvenjur
-- **Auðkenning og heimild (15%)**: Öryggisútfærsla
-- **Staðfesting og villumeðhöndlun (15%)**: Staðfesting inntaks og villuviðbrögð
-- **Prófanir (15%)**: Umfjöllun og gæði prófana
-- **Gæði kóða og skjölun (10%)**: Skipulag kóða og skjölun
-
-## Athugasemdir
-
-- Notaðu mynstur og bestu starfsvenjur úr áfanganum
-- Hugsaðu um jaðartilvik og villur
-- Íhugaðu sveigjanleika og viðhaldshæfni
-- Skrifaðu prófanir á meðan þú þróar, ekki eftir á
-
-Gangi þér vel! 🎫
+**Port 3000 in use?**
+- Change `PORT` in `.env`
