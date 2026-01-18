@@ -101,3 +101,82 @@ export const createBooking = async (
     next(error);
   }
 };
+
+export const cancelBooking = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const bookingId = req.params.id;
+    const user_id = req.user?.userId;
+
+    if (!user_id) {
+      throw new UnauthorizedError("User not authenticated");
+    }
+
+    // Get the booking with event details
+    const booking = await db.oneOrNone(
+      `SELECT b.*, e.start_time 
+       FROM bookings b
+       JOIN events e ON b.event_id = e.id
+       WHERE b.id = $1`,
+      [bookingId]
+    );
+
+    if (!booking) {
+      throw new NotFoundError("Booking not found");
+    }
+
+    // Check if booking belongs to user
+    if (booking.user_id != Number(user_id)) {
+      throw new AppError("You are not authorized to cancel this booking", 403);
+    }
+
+    // Check if booking is already cancelled
+    if (booking.status === "cancelled") {
+      throw new AppError("Booking is already cancelled", 400);
+    }
+
+    // Check 24-hour rule
+    const eventStartTime = new Date(booking.start_time);
+    const now = new Date();
+    const hoursUntilEvent =
+      (eventStartTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+    if (hoursUntilEvent < 24) {
+      throw new AppError(
+        "Cannot cancel booking less than 24 hours before event",
+        400
+      );
+    }
+
+    // Cancel the booking (update status and return tickets)
+    await db.tx(async (t) => {
+      await t.none(
+        `UPDATE bookings 
+         SET status = 'cancelled', 
+             cancelled_at = NOW(),
+             updated_at = NOW()
+         WHERE id = $1`,
+        [bookingId]
+      );
+
+      // Return tickets to available pool
+      await t.none(
+        `UPDATE tickets t
+         SET available_quantity = available_quantity + bt.quantity,
+             updated_at = NOW()
+         FROM booking_tickets bt
+         WHERE bt.booking_id = $1 AND t.id = bt.ticket_id`,
+        [bookingId]
+      );
+    });
+
+    res.json({
+      message: "Booking cancelled successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};

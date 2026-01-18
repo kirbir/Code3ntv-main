@@ -1,4 +1,4 @@
-import db from "../../../skilaverkefni3/src/config/db.js";
+import db from "../config/db.js";
 import * as bcrypt from "bcrypt";
 import { cancelFutureBookings } from "./bookingModel.js";
 

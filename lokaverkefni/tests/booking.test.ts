@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterAll } from "vitest";
 import type { Event } from "../src/models/eventModel.js";
 import request from "supertest";
 import app from "../src/app.js";
-import db from "../src/config/db.js";
+import db from "../src/config/db.test.js";
 
 describe("Booking Tests", () => {
   let authToken: string;
@@ -15,22 +15,67 @@ describe("Booking Tests", () => {
 
   // Helper: Create a test user and get auth token
   beforeEach(async () => {
-    // Register and login a user for booking tests
     const testUser = {
       email: "bookinguser@example.com",
       password: "BookingPass123!",
     };
 
-    try {
-      await request(app).post("/api/users/register").send(testUser);
-    } catch (error) {
-      // Ignore registration errors - user might already exist
+    await db.none(
+      "DELETE FROM booking_tickets WHERE booking_id IN (SELECT id FROM bookings WHERE user_id IN (SELECT id FROM users WHERE email = $1))",
+      [testUser.email]
+    );
+    await db.none(
+      "DELETE FROM bookings WHERE user_id IN (SELECT id FROM users WHERE email = $1)",
+      [testUser.email]
+    );
+    await db.none("DELETE FROM users WHERE email = $1", [testUser.email]);
+
+    // Ensure user is deleted first
+    await db.none(
+      "DELETE FROM booking_tickets WHERE booking_id IN (SELECT id FROM bookings WHERE user_id IN (SELECT id FROM users WHERE email = $1))",
+      [testUser.email]
+    );
+    await db.none(
+      "DELETE FROM bookings WHERE user_id IN (SELECT id FROM users WHERE email = $1)",
+      [testUser.email]
+    );
+    await db.none("DELETE FROM users WHERE email = $1", [testUser.email]);
+
+    // Register user
+    const regResponse = await request(app)
+      .post("/api/users/register")
+      .send(testUser);
+    
+    if (regResponse.status !== 201) {
+      // If still failing, try one more time after a brief delay
+      await new Promise(resolve => setTimeout(resolve, 100));
+      const retryResponse = await request(app)
+        .post("/api/users/register")
+        .send(testUser);
+      if (retryResponse.status !== 201) {
+        throw new Error(
+          `Registration failed after retry: ${retryResponse.status} - ${JSON.stringify(retryResponse.body)}`
+        );
+      }
     }
 
-    const loginResponse = await request(app)
+    // Login user
+    let loginResponse = await request(app)
       .post("/api/users/login")
-      .send(testUser)
-      .expect(200);
+      .send(testUser);
+    
+    if (loginResponse.status !== 200) {
+      // If login fails, user might not be ready yet, retry
+      await new Promise(resolve => setTimeout(resolve, 100));
+      loginResponse = await request(app)
+        .post("/api/users/login")
+        .send(testUser);
+      if (loginResponse.status !== 200) {
+        throw new Error(
+          `Login failed after retry: ${loginResponse.status} - ${JSON.stringify(loginResponse.body)}`
+        );
+      }
+    }
 
     authToken = loginResponse.body.token;
     userId = loginResponse.body.user.id;
@@ -100,11 +145,32 @@ describe("Booking Tests", () => {
 
   // UC6: Create Booking - Happy Path
   it("should create a booking successfully with valid token", async () => {
+    // Ensure user still exists
+    const userExists = await db.oneOrNone(
+      "SELECT id FROM users WHERE id = $1",
+      [userId]
+    );
+    if (!userExists) {
+      // Recreate user if missing
+      const testUser = {
+        email: "bookinguser@example.com",
+        password: "BookingPass123!",
+      };
+      await db.none("DELETE FROM users WHERE email = $1", [testUser.email]);
+      await request(app).post("/api/users/register").send(testUser).expect(201);
+      const loginResponse = await request(app)
+        .post("/api/users/login")
+        .send(testUser)
+        .expect(200);
+      authToken = loginResponse.body.token;
+      userId = loginResponse.body.user.id;
+    }
+
     const bookingData = {
-      event_id: 1,
+      event_id: eventId,
       tickets: [
         {
-          ticket_id: 1,
+          ticket_id: ticketId,
           quantity: 2,
         },
       ],
@@ -161,5 +227,158 @@ describe("Booking Tests", () => {
       .expect(400);
 
     expect(response.body.error.message).toContain("past");
+  });
+
+  // UC8: Cancel Booking - Happy Path (more than 24 hours before event)
+  it("should cancel a booking successfully when more than 24 hours before event", async () => {
+    // First, create a booking to cancel
+    const bookingData = {
+      event_id: eventId,
+      tickets: [{ ticket_id: ticketId, quantity: 2 }],
+    };
+
+    const bookingResponse = await request(app)
+      .post("/api/bookings")
+      .set("Authorization", `Bearer ${authToken}`)
+      .send(bookingData)
+      .expect(201);
+
+    const bookingId = bookingResponse.body.booking.id;
+
+    // Now cancel it
+    const response = await request(app)
+      .delete(`/api/bookings/${bookingId}`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .expect(200);
+
+    expect(response.body).toHaveProperty("message");
+    expect(response.body.message).toContain("cancel");
+  });
+
+  // UC8: Cancel Booking - Alternate Flow 2a (booking doesn't exist)
+  it("should return 404 when trying to cancel non-existent booking", async () => {
+    const response = await request(app)
+      .delete(`/api/bookings/99999`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .expect(404);
+
+    expect(response.body).toHaveProperty("error");
+  });
+
+  // UC8: Cancel Booking - Alternate Flow 2b (booking belongs to another user)
+  it("should return 403 when trying to cancel another user's booking", async () => {
+    // Ensure first user exists
+    const firstUserExists = await db.oneOrNone(
+      "SELECT id FROM users WHERE id = $1",
+      [userId]
+    );
+    if (!firstUserExists) {
+      const testUser = {
+        email: "bookinguser@example.com",
+        password: "BookingPass123!",
+      };
+      await request(app).post("/api/users/register").send(testUser).expect(201);
+      const loginResponse = await request(app)
+        .post("/api/users/login")
+        .send(testUser)
+        .expect(200);
+      authToken = loginResponse.body.token;
+      userId = loginResponse.body.user.id;
+    }
+
+    // Create another user
+    const anotherUser = {
+      email: "anotheruser@example.com",
+      password: "AnotherPass123!",
+    };
+
+    await db.none("DELETE FROM users WHERE email = $1", [anotherUser.email]);
+    await request(app).post("/api/users/register").send(anotherUser).expect(201);
+
+    const loginResponse = await request(app)
+      .post("/api/users/login")
+      .send(anotherUser)
+      .expect(200);
+
+    const anotherToken = loginResponse.body.token;
+
+    // Create a booking with the first user
+    const bookingData = {
+      event_id: eventId,
+      tickets: [{ ticket_id: ticketId, quantity: 1 }],
+    };
+
+    const bookingResponse = await request(app)
+      .post("/api/bookings")
+      .set("Authorization", `Bearer ${authToken}`)
+      .send(bookingData)
+      .expect(201);
+
+    const bookingId = bookingResponse.body.booking.id;
+
+    // Try to cancel with the second user
+    const response = await request(app)
+      .delete(`/api/bookings/${bookingId}`)
+      .set("Authorization", `Bearer ${anotherToken}`)
+      .expect(403);
+
+    expect(response.body).toHaveProperty("error");
+    expect(response.body.error.message).toContain("not authorized");
+  });
+
+  // UC8: Cancel Booking - Alternate Flow 3a (less than 24 hours before event)
+  it("should not allow cancellation less than 24 hours before event", async () => {
+    // Create an event that starts in 12 hours
+    const venue = await db.one(
+      `INSERT INTO venues (name, address, city, capacity) 
+     VALUES ($1, $2, $3, $4) RETURNING id`,
+      ["Soon Venue", "123 Soon St", "Reykjavik", 500]
+    );
+
+    const tomorrow = new Date();
+    tomorrow.setHours(tomorrow.getHours() + 12); // 12 hours from now
+    const tomorrowEnd = new Date(tomorrow);
+    tomorrowEnd.setHours(tomorrowEnd.getHours() + 3);
+
+    const soonEvent = await db.one(
+      `INSERT INTO events (title, description, start_time, end_time, venue_id, base_price) 
+     VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+      [
+        "Soon Event",
+        "Happens in 12 hours",
+        tomorrow.toISOString(),
+        tomorrowEnd.toISOString(),
+        venue.id,
+        3000.0,
+      ]
+    );
+
+    const soonTicket = await db.one(
+      `INSERT INTO tickets (event_id, section, description, price, total_quantity, available_quantity)
+     VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+      [soonEvent.id, "Standard", "Soon tickets", 3000.0, 50, 50]
+    );
+
+    // Create a booking for this soon event
+    const bookingData = {
+      event_id: soonEvent.id,
+      tickets: [{ ticket_id: soonTicket.id, quantity: 1 }],
+    };
+
+    const bookingResponse = await request(app)
+      .post("/api/bookings")
+      .set("Authorization", `Bearer ${authToken}`)
+      .send(bookingData)
+      .expect(201);
+
+    const bookingId = bookingResponse.body.booking.id;
+
+    // Try to cancel - should fail because it's less than 24 hours
+    const response = await request(app)
+      .delete(`/api/bookings/${bookingId}`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .expect(400);
+
+    expect(response.body.error.message).toContain("24 hours");
   });
 });

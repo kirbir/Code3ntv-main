@@ -59,7 +59,7 @@ export const cancelFutureBookings = async (userId: number) => {
       bt.quantity
       FROM bookings b
       JOIN events e ON b.event_id = e.id
-      JOIN bookings_tickets bt ON b.id = bt.booking_id
+      JOIN booking_tickets bt ON b.id = bt.booking_id
       WHERE b.user_id = $1
         AND e.start_time > NOW()
         AND b.status = 'confirmed'

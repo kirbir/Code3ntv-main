@@ -1,14 +1,15 @@
 -- ============================================
 -- Drop existing tables (for clean setup)
 -- ============================================
-DROP TABLE IF EXISTS refresh_tokens;
-DROP TABLE IF EXISTS booking_tickets;
-DROP TABLE IF EXISTS event_categories;
-DROP TABLE IF EXISTS users CASCADE;
-DROP TABLE IF EXISTS events CASCADE;
-DROP TABLE IF EXISTS venues CASCADE;
-DROP TABLE IF EXISTS booking CASCADE;
+DROP TABLE IF EXISTS refresh_tokens CASCADE;
+DROP TABLE IF EXISTS password_reset_tokens CASCADE;
+DROP TABLE IF EXISTS booking_tickets CASCADE;
+DROP TABLE IF EXISTS bookings CASCADE;
 DROP TABLE IF EXISTS tickets CASCADE;
+DROP TABLE IF EXISTS event_categories CASCADE;
+DROP TABLE IF EXISTS events CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS venues CASCADE;
 DROP TABLE IF EXISTS categories CASCADE;
 
 -- ============================================
@@ -172,14 +173,14 @@ INSERT INTO categories (name, description) VALUES
 
 -- Events
 INSERT INTO events (title, description, venue_id, start_time, end_time, is_active, base_price) VALUES
-('Sigur Rós Concert', 'Icelandic post-rock band performing their greatest hits', 1, '2024-12-15 20:00:00+00', '2024-12-15 23:00:00+00', TRUE, 8500.00),
-('Iceland vs Denmark Football', 'International friendly match', 2, '2024-12-20 18:00:00+00', '2024-12-20 20:00:00+00', TRUE, 5000.00),
-('Hamlet - Shakespeare', 'Classic Shakespeare play performed in Icelandic', 5, '2024-12-10 19:30:00+00', '2024-12-10 22:00:00+00', TRUE, 4500.00),
-('Comedy Night with Jón Gnarr', 'Stand-up comedy show', 3, '2024-12-12 20:00:00+00', '2024-12-12 22:30:00+00', TRUE, 3500.00),
-('Iceland Airwaves Festival', 'Annual music festival', 1, '2024-12-05 14:00:00+00', '2024-12-08 23:00:00+00', TRUE, 15000.00),
-('Tech Conference 2024', 'Technology and innovation conference', 4, '2024-12-18 09:00:00+00', '2024-12-18 17:00:00+00', TRUE, 12000.00),
-('Björk - Biophilia Live', 'Björk performing Biophilia album', 1, '2024-12-25 21:00:00+00', '2024-12-25 23:30:00+00', TRUE, 9500.00),
-('Basketball Championship', 'National basketball finals', 2, '2024-12-22 19:00:00+00', '2024-12-22 21:30:00+00', TRUE, 4000.00);
+('Sigur Rós Concert', 'Icelandic post-rock band performing their greatest hits', 1, '2026-06-15 20:00:00+00', '2026-06-15 23:00:00+00', TRUE, 8500.00),
+('Iceland vs Denmark Football', 'International friendly match', 2, '2026-06-20 18:00:00+00', '2026-06-20 20:00:00+00', TRUE, 5000.00),
+('Hamlet - Shakespeare', 'Classic Shakespeare play performed in Icelandic', 5, '2026-06-10 19:30:00+00', '2026-06-10 22:00:00+00', TRUE, 4500.00),
+('Comedy Night with Jón Gnarr', 'Stand-up comedy show', 3, '2026-06-12 20:00:00+00', '2026-06-12 22:30:00+00', TRUE, 3500.00),
+('Iceland Airwaves Festival', 'Annual music festival', 1, '2026-06-05 14:00:00+00', '2026-06-08 23:00:00+00', TRUE, 15000.00),
+('Tech Conference 2026', 'Technology and innovation conference', 4, '2026-06-18 09:00:00+00', '2026-06-18 17:00:00+00', TRUE, 12000.00),
+('Björk - Biophilia Live', 'Björk performing Biophilia album', 1, '2026-06-25 21:00:00+00', '2026-06-25 23:30:00+00', TRUE, 9500.00),
+('Basketball Championship', 'National basketball finals', 2, '2026-06-22 19:00:00+00', '2026-06-22 21:30:00+00', TRUE, 4000.00);
 
 -- Event Categories (many-to-many)
 INSERT INTO event_categories (event_id, category_id) VALUES
